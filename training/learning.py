@@ -53,7 +53,7 @@ def learning():
 	for k in range(par.epoch):
 		for i in range(0,60000):
 			# print i,"  ",k
-			img = cv2.imread("neuron" + str(i) + ".bmp", 0)
+			img = cv2.imread("minst_trans/train_" + str(i) + ".bmp", 0)
 
 			#Convolving image with receptive field
 			pot = rf(img)

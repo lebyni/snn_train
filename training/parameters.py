@@ -26,7 +26,7 @@ class param():
 	tau_plus = 8
 	tau_minus = 5
 	
-	epoch = 10
+	epoch = 5
 
 
 	fr_bits = 12

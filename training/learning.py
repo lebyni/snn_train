@@ -21,10 +21,6 @@ from reconstruct import reconst_weights
 from parameters import param as par
 from var_th import threshold
 import os
-from numba import jit
-
-
-@jit()
 
 def learning():
 	#potentials of output neurons
@@ -51,85 +47,86 @@ def learning():
 
 
 	for k in range(par.epoch):
-		for i in range(0,60000):
-			# print i,"  ",k
-			img = cv2.imread("minst_trans/train_" + str(i) + ".bmp", 0)
+		for p in range(3):
+			for i in range(0,900):
+				# print i,"  ",k
+				# img = cv2.imread("neuron" + str(i) + ".bmp", 0)
+				img = cv2.imread("t10k-images/" + str(p) + "_" + str(i) + ".bmp", 0)
+				#Convolving image with receptive field
+				pot = rf(img)
 
-			#Convolving image with receptive field
-			pot = rf(img)
+				#Generating spike train （784行 每一行代表一个像素的脉冲序列）
+				train = np.array(encode(pot))
 
-			#Generating spike train （784行 每一行代表一个像素的脉冲序列）
-			train = np.array(encode(pot))
+				#calculating threshold value for the image
+				var_threshold = threshold(train)
 
-			#calculating threshold value for the image
-			var_threshold = threshold(train)
+				# print var_threshold
+				# synapse_act = np.zeros((par.n,par.m))
+				# var_threshold = 9
+				# print var_threshold
+				# var_D = (var_threshold*3)*0.07
 
-			# print var_threshold
-			# synapse_act = np.zeros((par.n,par.m))
-			# var_threshold = 9
-			# print var_threshold
-			# var_D = (var_threshold*3)*0.07
+			#漏电值
+				var_D = 0.15*par.scale
 
-		#漏电值
-			var_D = 0.15*par.scale
+				for x in layer2:
+					x.initial(var_threshold)
 
-			for x in layer2:
-				x.initial(var_threshold)
+				#flag for lateral inhibition
+				f_spike = 0
 
-			#flag for lateral inhibition
-			f_spike = 0
+				img_win = 100
 
-			img_win = 100
+				active_pot = []
+				for index1 in range(par.n):
+					active_pot.append(0)
 
-			active_pot = []
-			for index1 in range(par.n):
-				active_pot.append(0)
+				#Leaky integrate and fire neuron dynamics
+				for t in time:
+					for j, x in enumerate(layer2):
+						active = []
+						if(x.t_rest<t):
+							x.P = x.P + np.dot(synapse[j], train[:,t])#在t时刻第j个神经元的膜电位
+							if(x.P>par.Prest):
+								x.P -= var_D
+							active_pot[j] = x.P#所以active_pot有三个值，下面要找最大的
 
-			#Leaky integrate and fire neuron dynamics
-			for t in time:
-				for j, x in enumerate(layer2):
-					active = []
-					if(x.t_rest<t):
-						x.P = x.P + np.dot(synapse[j], train[:,t])#在t时刻第j个神经元的膜电位
-						if(x.P>par.Prest):
-							x.P -= var_D
-						active_pot[j] = x.P#所以active_pot有三个值，下面要找最大的
+						pot_arrays[j].append(x.P)
 
-					pot_arrays[j].append(x.P)
+					# Lateral Inhibition
+					if(f_spike==0):
+						high_pot = max(active_pot)
+						if(high_pot>var_threshold):
+							f_spike = 1
+							winner = np.argmax(active_pot)
+							img_win = winner
+							print ("winner is " + str(winner))
+							for s in range(par.n):
+								if(s!=winner):
+									layer2[s].P = par.Pmin
 
-				# Lateral Inhibition
-				if(f_spike==0):
-					high_pot = max(active_pot)
-					if(high_pot>var_threshold):
-						f_spike = 1
-						winner = np.argmax(active_pot)
-						img_win = winner
-						print ("winner is " + str(winner))
-						for s in range(par.n):
-							if(s!=winner):
-								layer2[s].P = par.Pmin
-
-				#Check for spikes and update weights
-				for j,x in enumerate(layer2):
-					s = x.check()
-					if(s==1):
-						x.t_rest = t + x.t_ref
-						x.P = par.Prest
-						for h in range(par.m):
-							for t1 in range(-2,par.t_back-1, -1):
-								if 0<=t+t1<par.T+1:
-									if train[h][t+t1] == 1:
-										# print "weight change by" + str(update(synapse[j][h], rl(t1)))
-										synapse[j][h] = update(synapse[j][h], rl(t1))
+					#Check for spikes and update weights
+					for j,x in enumerate(layer2):
+						s = x.check()
+						if(s==1):
+							x.t_rest = t + x.t_ref
+							x.P = par.Prest
+							for h in range(par.m):
+								for t1 in range(-2,par.t_back-1, -1):
+									if 0<=t+t1<par.T+1:
+										if train[h][t+t1] == 1:
+											# print "weight change by" + str(update(synapse[j][h], rl(t1)))
+											synapse[j][h] = update(synapse[j][h], rl(t1))
 
 
 
 
-							for t1 in range(2,par.t_fore+1, 1):
-								if 0<=t+t1<par.T+1:
-									if train[h][t+t1] == 1:
-										# print "weight change by" + str(update(synapse[j][h], rl(t1)))
-										synapse[j][h] = update(synapse[j][h], rl(t1))
+								for t1 in range(2,par.t_fore+1, 1):
+									if 0<=t+t1<par.T+1:
+										if train[h][t+t1] == 1:
+											# print "weight change by" + str(update(synapse[j][h], rl(t1)))
+											synapse[j][h] = update(synapse[j][h], rl(t1))
 
 			#如果有激活的神经元（阈值小于膜电位）
 			if(img_win!=100):
@@ -156,8 +153,8 @@ def learning():
 	# 	plt.show()
 
 	#Reconstructing weights to analyse training
-	for i in range(par.n):
-		reconst_weights(synapse[i],i+1)
+	# for i in range(par.n):
+	# 	reconst_weights(synapse[i],i+1)
 
 	np.save("synapse.npy",synapse)
 

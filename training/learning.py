@@ -47,11 +47,11 @@ def learning():
 
 
 	for k in range(par.epoch):
-		for p in range(3):
-			for i in range(0,900):
+		for i in range(0,900):
+			for p1 in range(3):
 				# print i,"  ",k
 				# img = cv2.imread("neuron" + str(i) + ".bmp", 0)
-				img = cv2.imread("t10k-images/" + str(p) + "_" + str(i) + ".bmp", 0)
+				img = cv2.imread("t10k-images/" + str(p1) + "_" + str(i) + ".bmp", 0)
 				#Convolving image with receptive field
 				pot = rf(img)
 
@@ -101,7 +101,7 @@ def learning():
 							f_spike = 1
 							winner = np.argmax(active_pot)
 							img_win = winner
-							print ("number"+str(p)+" "+str(i)+" winner is " + str(winner))
+							print (str(k)+" number "+str(p1)+" "+str(i)+" winner is " + str(winner))
 							for s in range(par.n):
 								if(s!=winner):
 									layer2[s].P = par.Pmin
@@ -129,12 +129,12 @@ def learning():
 											synapse[j][h] = update(synapse[j][h], rl(t1))
 
 			#如果有激活的神经元（阈值小于膜电位）
-			if(img_win!=100):
-				for p in range(par.m):
-					if sum(train[p])==0:#脉冲为0（无激活）的序列突触权重要减少，增加差异
-						synapse[img_win][p] -= 0.06*par.scale
-						if(synapse[img_win][p]<par.w_min):
-							synapse[img_win][p] = par.w_min
+				if(img_win!=100):
+					for p in range(par.m):
+						if sum(train[p])==0:#脉冲为0（无激活）的序列突触权重要减少，增加差异
+							synapse[img_win][p] -= 0.06*par.scale
+							if(synapse[img_win][p]<par.w_min):
+								synapse[img_win][p] = par.w_min
 
 
 	ttt = np.arange(0,len(pot_arrays[0]),1)
@@ -153,8 +153,8 @@ def learning():
 	# 	plt.show()
 
 	#Reconstructing weights to analyse training
-	# for i in range(par.n):
-	# 	reconst_weights(synapse[i],i+1)
+	for i in range(par.n):
+		reconst_weights(synapse[i],i+1)
 
 	np.save("synapse.npy",synapse)
 

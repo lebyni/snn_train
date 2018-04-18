@@ -101,7 +101,7 @@ def learning():
 							f_spike = 1
 							winner = np.argmax(active_pot)
 							img_win = winner
-							print ("winner is " + str(winner))
+							print ("number"+str(p)+" "+str(i)+" winner is " + str(winner))
 							for s in range(par.n):
 								if(s!=winner):
 									layer2[s].P = par.Pmin

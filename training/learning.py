@@ -47,7 +47,7 @@ def learning():
 
 
 	for k in range(par.epoch):
-		for i in range(0,900):
+		for i in range(0,890):
 			for p1 in range(10):
 				# print i,"  ",k
 				# img = cv2.imread("neuron" + str(i) + ".bmp", 0)

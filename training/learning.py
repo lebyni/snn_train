@@ -153,8 +153,8 @@ def learning():
 	# 	plt.show()
 
 	#Reconstructing weights to analyse training
-	for i in range(par.n):
-		reconst_weights(synapse[i],i+1)
+	# for i in range(par.n):
+	# 	reconst_weights(synapse[i],i+1)
 
 	np.save("synapse.npy",synapse)
 

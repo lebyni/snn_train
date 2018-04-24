@@ -14,7 +14,7 @@ class param():
 	pixel_x = 28
 	Prest = 0
 	m = pixel_x*pixel_x #Number of neurons in first layer
-	n =  30  #Number of neurons in second layer
+	n =  100  #Number of neurons in second layer
 	Pmin = -500*scale
 	# Pth = 5
 	# D = 0.7
@@ -26,7 +26,7 @@ class param():
 	tau_plus = 8
 	tau_minus = 5
 	
-	epoch = 1
+	epoch = 6
 
 
 	fr_bits = 12
